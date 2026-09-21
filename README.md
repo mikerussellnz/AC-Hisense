@@ -84,7 +84,9 @@ climate:
     uart_id: ac_uart
     update_interval: 2s
     enable_presets: true
-    # enable_dry_offset: true  # decode and log the DRY remote adjustment (-7..+7)
+    enable_dry_offset: true
+    dry_offset:
+      name: "Dry Offset"  # Home Assistant control: -7..+7, only active in DRY mode
     # enable_humidity: false  # uncomment to hide humidity sensors on units without humidity hardware
 
 ```
@@ -250,6 +252,13 @@ For flashing the native module (AEH-W4G1)
 -   Presets (if `enable_presets: true`): `ECO`, `BOOST` (turbo), `SLEEP`, `QUIET`, `+8 °C`
 -   Target temperature range: 16–30°C in steps of 1°C
 -   Current temperature is read from the AC and displayed
+
+### DRY offset (`number`)
+
+Set `enable_dry_offset: true` to create a `Dry Offset` number entity in Home Assistant.
+While the AC is in DRY mode, it accepts values from `-7` to `+7` and sends the
+corresponding native DRY adjustment to the indoor unit. The control is rejected
+while another HVAC mode is active.
 
 ### Sleep programs
 

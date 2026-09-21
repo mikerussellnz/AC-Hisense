@@ -7,6 +7,7 @@
 #include "esphome/core/gpio.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/select/select.h"
+#include "esphome/components/number/number.h"
 #include "esphome/components/remote_base/remote_base.h"
 #include "esphome/core/automation.h"
 #include "kelon168_protocol.h"
@@ -115,6 +116,17 @@ class ACHISleepProgramSelect : public select::Select {
   ACHIClimate *parent_{nullptr};
 };
 
+class ACHIDryOffsetNumber : public number::Number {
+ public:
+  void set_parent(ACHIClimate *p) { parent_ = p; }
+
+ protected:
+  void control(float value) override;
+
+ private:
+  ACHIClimate *parent_{nullptr};
+};
+
 // Protocol constants
 static constexpr uint8_t HI_HDR0 = 0xF4;
 static constexpr uint8_t HI_HDR1 = 0xF5;
@@ -195,6 +207,7 @@ enum CommandFieldMask : uint16_t {
   CMD_FIELD_QUIET      = 1u << 6,
   CMD_FIELD_LED        = 1u << 7,
   CMD_FIELD_HEAT_8C    = 1u << 8,
+  CMD_FIELD_DRY_OFFSET = 1u << 9,
 };
 
 // Bit masks within specific bytes
@@ -280,6 +293,11 @@ class ACHIClimate : public climate::Climate, public PollingComponent, public uar
     if (sleep_program_select_ != nullptr) sleep_program_select_->set_parent(this);
   }
   void set_sleep_program(const std::string &value);
+  void set_dry_offset_number(ACHIDryOffsetNumber *n) {
+    dry_offset_number_ = n;
+    if (dry_offset_number_ != nullptr) dry_offset_number_->set_parent(this);
+  }
+  void set_dry_offset(float value);
   void set_ir_transmitter(remote_base::RemoteTransmitterBase *t) { ir_transmitter_ = t; }
   void set_ifeel_mqtt_topic(const std::string &topic) { ifeel_mqtt_topic_ = topic; }
   void set_ifeel_mqtt_payload_format(const std::string &format) {
@@ -692,6 +710,9 @@ class ACHIClimate : public climate::Climate, public PollingComponent, public uar
 
   bool enable_presets_{true};
   bool enable_dry_offset_{false};
+  ACHIDryOffsetNumber *dry_offset_number_{nullptr};
+  int8_t dry_offset_{0};
+  int8_t d_dry_offset_{0};
 
   // For debugging (optional)
   std::vector<uint8_t> last_status_frame_;

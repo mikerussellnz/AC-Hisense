@@ -2,13 +2,13 @@ import esphome.codegen as cg
 from esphome import automation
 import esphome.config_validation as cv
 from esphome import pins
-from esphome.components import climate, uart, sensor, binary_sensor, switch, select, text_sensor, remote_base
+from esphome.components import climate, uart, sensor, binary_sensor, switch, select, text_sensor, number, remote_base
 from esphome.const import CONF_ID, CONF_UART_ID, CONF_NAME, CONF_TEMPERATURE, ENTITY_CATEGORY_CONFIG, ENTITY_CATEGORY_DIAGNOSTIC, ICON_LIGHTBULB, CONF_FLOW_CONTROL_PIN
 
 CONF_DE_PIN = "de_pin"
 CONF_RE_PIN = "re_pin"
 
-AUTO_LOAD = ["climate", "uart", "sensor", "binary_sensor", "switch", "select", "text_sensor", "remote_base"]
+AUTO_LOAD = ["climate", "uart", "sensor", "binary_sensor", "switch", "select", "text_sensor", "number", "remote_base"]
 
 ac_hi_ns = cg.esphome_ns.namespace("ac_hi")
 ACHIClimate = ac_hi_ns.class_("ACHIClimate", climate.Climate, cg.PollingComponent, uart.UARTDevice)
@@ -16,6 +16,7 @@ ACHILEDTargetSwitch = ac_hi_ns.class_("ACHILEDTargetSwitch", switch.Switch)
 ACHICommandSoundSwitch = ac_hi_ns.class_("ACHICommandSoundSwitch", switch.Switch)
 ACHIMemorySwitch = ac_hi_ns.class_("ACHIMemorySwitch", switch.Switch)
 ACHISleepProgramSelect = ac_hi_ns.class_("ACHISleepProgramSelect", select.Select)
+ACHIDryOffsetNumber = ac_hi_ns.class_("ACHIDryOffsetNumber", number.Number)
 ACHIIFeelAction = ac_hi_ns.class_("ACHIIFeelAction", automation.Action)
 
 # ESPHome 2025.5+ uses climate.climate_schema(...), older versions still use CLIMATE_SCHEMA.
@@ -36,6 +37,7 @@ CONF_LED_SWITCH = "led_switch"
 CONF_SOUND_SWITCH = "sound_switch"
 CONF_MEMORY_SWITCH = "memory_switch"
 CONF_SLEEP_PROGRAM = "sleep_program"
+CONF_DRY_OFFSET = "dry_offset"
 CONF_IR_TRANSMITTER_ID = "ir_transmitter_id"
 CONF_IFEEL_MQTT_TOPIC = "ifeel_mqtt_topic"
 CONF_IFEEL_MQTT_PAYLOAD = "ifeel_mqtt_payload"
@@ -295,6 +297,11 @@ CONFIG_SCHEMA = cv.All(BASE_CLIMATE_SCHEMA.extend({
         ACHISleepProgramSelect,
         icon="mdi:sleep",
     ),
+    cv.Optional(CONF_DRY_OFFSET, default={CONF_NAME: "Dry Offset"}): number.number_schema(
+        ACHIDryOffsetNumber,
+        icon="mdi:thermometer-minus",
+        entity_category=ENTITY_CATEGORY_CONFIG,
+    ),
 
     # New memory diagnostics sensors (all optional)
     cv.Optional(CONF_HEAP_FREE): sensor.sensor_schema(),
@@ -484,6 +491,12 @@ async def to_code(config):
             options=["Sleep 1 — Hold", "Sleep 2 — Standard", "Sleep 3 — Wake Cool", "Sleep 4 — Steady"],
         )
         cg.add(var.set_sleep_program_select(sleep_program))
+
+    if config[CONF_ENABLE_DRY_OFFSET]:
+        dry_offset = await number.new_number(
+            config[CONF_DRY_OFFSET], min_value=-7, max_value=7, step=1
+        )
+        cg.add(var.set_dry_offset_number(dry_offset))
 
     # New memory diagnostics sensors (optional)
     if conf := config.get(CONF_HEAP_FREE):

@@ -175,6 +175,13 @@ void ACHISleepProgramSelect::control(const std::string &value) {
   }
 }
 
+// ---- ACHIDryOffsetNumber ----
+void ACHIDryOffsetNumber::control(float value) {
+  if (parent_ != nullptr) {
+    parent_->set_dry_offset(value);
+  }
+}
+
 // ---- ACHIClimate implementation ----
 
 void ACHIClimate::setup() {
@@ -459,6 +466,32 @@ void ACHIClimate::set_sleep_program(const std::string &value) {
 
   ESP_LOGD(TAG, "Changing active Sleep program to %s with a byte-17-only command",
            sleep_program_for_stage(stage));
+}
+
+void ACHIClimate::set_dry_offset(float value) {
+  if (!enable_dry_offset_ || mode_ != climate::CLIMATE_MODE_DRY) {
+    ESP_LOGW(TAG, "Ignoring DRY offset %.0f because DRY offset control is unavailable outside DRY mode",
+             value);
+    if (dry_offset_number_ != nullptr)
+      dry_offset_number_->publish_state(static_cast<float>(dry_offset_));
+    return;
+  }
+
+  const int8_t offset = static_cast<int8_t>(std::max(-7.0f, std::min(7.0f, std::round(value))));
+  if (offset == d_dry_offset_) return;
+
+  d_dry_offset_ = offset;
+  pending_command_fields_ |= CMD_FIELD_DRY_OFFSET;
+  accept_remote_changes_ = false;
+  ha_priority_active_ = true;
+  pending_control_ = true;
+  last_control_ms_ = millis();
+  user_command_next_write_ = true;
+  beep_on_next_write_ = command_sound_enabled_;
+  if (dry_offset_number_ != nullptr)
+    dry_offset_number_->publish_state(static_cast<float>(d_dry_offset_));
+
+  ESP_LOGD(TAG, "DRY offset command queued: %+d", static_cast<int>(d_dry_offset_));
 }
 
 // ---- Control from HA ----
@@ -972,6 +1005,15 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
     // companion controls in the upper bits of this packed byte are preserved.
     tx_bytes_[IDX_TX_HEAT_8C] |= d_heat_8c_ ? TxValues::HEAT_8C_ON
                                             : TxValues::HEAT_8C_OFF;
+  }
+
+  if (fields & CMD_FIELD_DRY_OFFSET) {
+    const int8_t offset = std::max<int8_t>(-7, std::min<int8_t>(7, d_dry_offset_));
+    const uint8_t magnitude = offset < 0
+        ? static_cast<uint8_t>(8 + -offset)
+        : static_cast<uint8_t>(offset);
+    tx_bytes_[IDX_TEMP_UNIT] = static_cast<uint8_t>((magnitude << 4) |
+                                                     (temp_unit_f_ ? 0x02 : 0x00) | 0x01);
   }
 
   // Display is also action-style. Send it when explicitly changed, or append
@@ -2057,6 +2099,14 @@ void ACHIClimate::parse_status_102_(const std::vector<uint8_t> &b) {
     const int8_t dry_offset = dry_nibble <= 7
                                   ? static_cast<int8_t>(dry_nibble)
                                   : -static_cast<int8_t>(dry_nibble & 0x07);
+    dry_offset_ = dry_offset;
+    const bool preserve_requested_offset = ha_priority_active_ && d_dry_offset_ != dry_offset_;
+    if (!preserve_requested_offset)
+      d_dry_offset_ = dry_offset_;
+    if (dry_offset_number_ != nullptr)
+      dry_offset_number_->publish_state(static_cast<float>(preserve_requested_offset
+                                                               ? d_dry_offset_
+                                                               : dry_offset_));
     ESP_LOGD(TAG, "DRY mode offset: %+d (byte26=0x%02X)", static_cast<int>(dry_offset),
              b[IDX_TEMP_UNIT]);
   }
