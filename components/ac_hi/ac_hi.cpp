@@ -1069,7 +1069,7 @@ void ACHIClimate::queue_retry_fields_from_state_() {
     // fight that automatic fan value unless the user explicitly selected a fan
     // mode in Home Assistant while Sleep was active.
     const bool sleep_owns_fan = sleep_stage_ > 0 && !sleep_fan_override_pending_;
-    if (!(enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY) || 
+    if (!(enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY) && 
         (d_mode_ != climate::CLIMATE_MODE_AUTO && !sleep_owns_fan &&
         (d_fan_ != fan_ || d_fan_turbo_ != fan_turbo_)))
       pending_command_fields_ |= CMD_FIELD_WIND;
