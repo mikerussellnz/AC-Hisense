@@ -17,16 +17,14 @@ namespace ac_hi {
 static const char *const TAG = "ac_hi";
 
 static void log_hex(const char *prefix, const std::vector<uint8_t> &data) {
-  for (size_t i = 0; i < data.size(); i += 16) {
-    char line[16 * 3 + 1];
-    char *p = line;
-    const size_t chunk = std::min<size_t>(16, data.size() - i);
-    for (size_t j = 0; j < chunk; j++) {
-      p += snprintf(p, sizeof(line) - static_cast<size_t>(p - line), "%02X ", data[i + j]);
-    }
-    *p = '\0';
-    ESP_LOGD(TAG, "%s: %s", prefix, line);
+  static constexpr char HEX[] = "0123456789ABCDEF";
+  std::string line;
+  line.reserve(data.size() * 2);
+  for (uint8_t value : data) {
+    line += HEX[value >> 4];
+    line += HEX[value & 0x0F];
   }
+  ESP_LOGD(TAG, "%s: %s", prefix, line.c_str());
 }
 
 static void log_kelon168_data(const char *prefix, const Kelon168Data &data) {
