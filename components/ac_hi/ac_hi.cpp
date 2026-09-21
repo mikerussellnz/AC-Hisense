@@ -1017,7 +1017,7 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
     ESP_LOGD(TAG, "DRY offset TX encoding: offset=%+d byte26=0x%02X temp_unit=%s",
          static_cast<int>(offset), tx_bytes_[IDX_TEMP_UNIT],
          temp_unit_f_ ? "F" : "C");
-    log_hex(TAG, "TX frame with DRY offset", tx_bytes_);
+    ESP_LOGD(TAG, "TX frame with DRY offset: %s", format_hex_pretty(tx_bytes_).c_str());
   }
 
   // Display is also action-style. Send it when explicitly changed, or append
