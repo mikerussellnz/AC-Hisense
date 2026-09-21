@@ -651,6 +651,8 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
   if (call.get_fan_mode().has_value()) {
     if (d_mode_ == climate::CLIMATE_MODE_AUTO) {
       ESP_LOGD(TAG, "Ignoring fan-mode command while SMART/AUTO is active");
+    else if (d_mode_ == climate::CLIMATE_MODE_DRY && enable_dry_offset_) {
+      ESP_LOGD(TAG, "Ignoring fan-mode command while DRY is active as fan is locked to AUTO in dry mode.");
     } else {
     // While Sleep is active, QUIET is controlled by the indoor unit itself.
     // Remember that this fan change is explicit so the next status parser does
@@ -1067,8 +1069,9 @@ void ACHIClimate::queue_retry_fields_from_state_() {
     // fight that automatic fan value unless the user explicitly selected a fan
     // mode in Home Assistant while Sleep was active.
     const bool sleep_owns_fan = sleep_stage_ > 0 && !sleep_fan_override_pending_;
-    if (d_mode_ != climate::CLIMATE_MODE_AUTO && !sleep_owns_fan &&
-        (d_fan_ != fan_ || d_fan_turbo_ != fan_turbo_))
+    if (!(enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY)) && 
+        (d_mode_ != climate::CLIMATE_MODE_AUTO && !sleep_owns_fan &&
+        (d_fan_ != fan_ || d_fan_turbo_ != fan_turbo_)))
       pending_command_fields_ |= CMD_FIELD_WIND;
     if (d_swing_ != swing_)
       pending_command_fields_ |= CMD_FIELD_SWING;
