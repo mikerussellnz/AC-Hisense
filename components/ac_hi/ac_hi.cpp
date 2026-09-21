@@ -1053,7 +1053,10 @@ void ACHIClimate::queue_retry_fields_from_state_() {
   if (d_power_on_ && power_on_) {
     // SMART/AUTO selects its own setpoint and fan. Codes 4/5/6/7 can therefore
     // legitimately report changing internal targets and automatic wind codes.
-    if (d_mode_ != climate::CLIMATE_MODE_AUTO && d_target_c_ != target_c_) {
+    // DRY mode with a unit using dry offset will ignore explicity temperature
+    // setting as it uses an offset instead.
+    if ((d_mode_ != climate::CLIMATE_MODE_AUTO || (enable_dry_offset_ && d_mode_ != climate::CLIMATE_MODE_DRY && ))
+      && d_target_c_ != target_c_) {
       pending_command_fields_ |= CMD_FIELD_TEMP;
       ESP_LOGD(TAG, "Retry: target %u°C differs from indoor unit %u°C",
                (unsigned) d_target_c_, (unsigned) target_c_);
