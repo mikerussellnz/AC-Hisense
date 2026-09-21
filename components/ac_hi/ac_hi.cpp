@@ -1564,6 +1564,7 @@ bool ACHIClimate::extract_next_frame_(std::vector<uint8_t> &frame) {
 }
 
 void ACHIClimate::handle_frame_(const std::vector<uint8_t> &b) {
+  ESP_LOGD(TAG, "Handling frame (%u bytes)", (unsigned) b.size());
   ESP_LOG_BUFFER_HEX_LEVEL(TAG, b.data(), b.size(), ESP_LOG_INFO);
   if (b.size() < 20) {
     ESP_LOGD(TAG, "Frame too short (%u), ignored", (unsigned) b.size());
