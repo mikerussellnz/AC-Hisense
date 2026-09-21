@@ -2532,7 +2532,7 @@ void ACHIClimate::parse_status_102_(const std::vector<uint8_t> &b) {
   }
   // Humidity entities always exist, but their availability follows the
   // ProductType reply. Before capabilities are known, leave them unavailable.
-  if (capabilities_.valid/*&& capabilities_.humidity*/) {
+  if (capabilities_.valid && capabilities_.humidity) {
     const uint8_t humidity_setting = b[IDX_INDOOR_HUMIDITY_SETTING];
     const uint8_t humidity = b[IDX_INDOOR_HUMIDITY];
     if (humidity_setting <= 100)
