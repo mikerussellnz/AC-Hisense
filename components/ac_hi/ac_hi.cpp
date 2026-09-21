@@ -16,6 +16,19 @@ namespace ac_hi {
 
 static const char *const TAG = "ac_hi";
 
+static void log_hex(const char *prefix, const std::vector<uint8_t> &data) {
+  for (size_t i = 0; i < data.size(); i += 16) {
+    char line[16 * 3 + 1];
+    char *p = line;
+    const size_t chunk = std::min<size_t>(16, data.size() - i);
+    for (size_t j = 0; j < chunk; j++) {
+      p += snprintf(p, sizeof(line) - static_cast<size_t>(p - line), "%02X ", data[i + j]);
+    }
+    *p = '\0';
+    ESP_LOGD(TAG, "%s: %s", prefix, line);
+  }
+}
+
 static void log_kelon168_data(const char *prefix, const Kelon168Data &data) {
   char buffer[KELON168_STATE_LENGTH * 3 + 1];
   size_t pos = 0;
@@ -1565,7 +1578,7 @@ bool ACHIClimate::extract_next_frame_(std::vector<uint8_t> &frame) {
 
 void ACHIClimate::handle_frame_(const std::vector<uint8_t> &b) {
   ESP_LOGD(TAG, "Handling frame (%u bytes)", (unsigned) b.size());
-  ESP_LOG_BUFFER_HEX_LEVEL(TAG, b.data(), b.size(), ESP_LOG_DEBUG);
+  log_hex("RX HEX", b);
   if (b.size() < 20) {
     ESP_LOGD(TAG, "Frame too short (%u), ignored", (unsigned) b.size());
     return;
