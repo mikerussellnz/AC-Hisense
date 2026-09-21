@@ -1048,8 +1048,11 @@ void ACHIClimate::queue_retry_fields_from_state_() {
   if (d_power_on_ && power_on_) {
     // SMART/AUTO selects its own setpoint and fan. Codes 4/5/6/7 can therefore
     // legitimately report changing internal targets and automatic wind codes.
-    if (d_mode_ != climate::CLIMATE_MODE_AUTO && d_target_c_ != target_c_)
+    if (d_mode_ != climate::CLIMATE_MODE_AUTO && d_target_c_ != target_c_) {
       pending_command_fields_ |= CMD_FIELD_TEMP;
+      ESP_LOGD(TAG, "Retry: target %u°C differs from indoor unit %u°C",
+               (unsigned) d_target_c_, (unsigned) target_c_);
+    }
 
     // A confirmed Sleep program owns the fan and normally forces QUIET. Do not
     // fight that automatic fan value unless the user explicitly selected a fan
