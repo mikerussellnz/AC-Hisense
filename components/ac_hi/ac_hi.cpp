@@ -630,6 +630,10 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
         // Keep displaying the internal SMART target (22/26 °C etc.) reported
         // by the indoor unit, but never transmit a user setpoint in AUTO.
         ESP_LOGD(TAG, "Ignoring target-temperature command while SMART/AUTO is active");
+      } else if (d_mode_ == climate::CLIMATE_MODE_DRY && enable_dry_offset_) {
+        // DRY mode uses a -7 .. +7 offset so explicit temperature setting is ignored triggering
+        // retry behavior.
+        ESP_LOGD(TAG, "Ignoring target-temperature command while DRY is active as dry offset mode enabled.");
       } else {
         // A manual setpoint means normal heating/cooling, not frost protection.
         d_heat_8c_ = false;
