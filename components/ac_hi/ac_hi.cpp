@@ -17,12 +17,12 @@ namespace ac_hi {
 static const char *const TAG = "ac_hi";
 
 static void log_hex(const char *prefix, const std::vector<uint8_t> &data) {
-  static constexpr char HEX[] = "0123456789ABCDEF";
+  static constexpr char HEX_DIGITS[] = "0123456789ABCDEF";
   std::string line;
   line.reserve(data.size() * 2);
   for (uint8_t value : data) {
-    line += HEX[value >> 4];
-    line += HEX[value & 0x0F];
+    line += HEX_DIGITS[value >> 4];
+    line += HEX_DIGITS[value & 0x0F];
   }
   ESP_LOGD(TAG, "%s: %s", prefix, line.c_str());
 }
