@@ -651,7 +651,7 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
   if (call.get_fan_mode().has_value()) {
     if (d_mode_ == climate::CLIMATE_MODE_AUTO) {
       ESP_LOGD(TAG, "Ignoring fan-mode command while SMART/AUTO is active");
-    else if (d_mode_ == climate::CLIMATE_MODE_DRY && enable_dry_offset_) {
+    } else if (d_mode_ == climate::CLIMATE_MODE_DRY && enable_dry_offset_) {
       ESP_LOGD(TAG, "Ignoring fan-mode command while DRY is active as fan is locked to AUTO in dry mode.");
     } else {
     // While Sleep is active, QUIET is controlled by the indoor unit itself.
