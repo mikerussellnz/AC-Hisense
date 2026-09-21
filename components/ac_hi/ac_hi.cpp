@@ -1028,7 +1028,7 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
     const uint8_t magnitude = offset < 0
         ? static_cast<uint8_t>(8 + -offset)
         : static_cast<uint8_t>(offset);
-    tx_bytes_[IDX_TEMP_UNIT] = static_cast<uint8_t>((magnitude << 4) |
+    tx_bytes_[IDX_TEMP_UNIT+1] = static_cast<uint8_t>((magnitude << 4) |
                                                      (temp_unit_f_ ? 0x02 : 0x00) | 0x01);
     ESP_LOGD(TAG, "DRY offset TX encoding: offset=%+d byte26=0x%02X temp_unit=%s",
          static_cast<int>(offset), tx_bytes_[IDX_TEMP_UNIT],
