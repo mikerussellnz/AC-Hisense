@@ -635,7 +635,6 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
         // ignored triggering usless looping of the retry behavior so ignore temperature setting
         // if configured in this mode.
         ESP_LOGD(TAG, "Ignoring target-temperature command while DRY is active as dry offset mode enabled.");
-        publish_state();
       } else {
         // A manual setpoint means normal heating/cooling, not frost protection.
         d_heat_8c_ = false;
@@ -679,7 +678,8 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
   if (call.get_preset().has_value()) {
     auto p = *call.get_preset();
     const bool preset_allowed_in_mode =
-        d_mode_ != climate::CLIMATE_MODE_AUTO || p == climate::CLIMATE_PRESET_NONE;
+        (d_mode_ != climate::CLIMATE_MODE_AUTO && 
+          !(enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY)) || p == climate::CLIMATE_PRESET_NONE;
     const bool preset_supported =
         !(p == climate::CLIMATE_PRESET_ECO && capabilities_.valid && !capabilities_.power_save);
     if (!preset_allowed_in_mode) {
