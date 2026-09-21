@@ -677,9 +677,11 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
 
   if (call.get_preset().has_value()) {
     auto p = *call.get_preset();
-    const bool preset_allowed_in_mode =
-        (d_mode_ != climate::CLIMATE_MODE_AUTO && 
-          !(enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY)) || p == climate::CLIMATE_PRESET_NONE;
+    const bool preset_blocked_by_auto_mode = d_mode_ == climate::CLIMATE_MODE_AUTO && 
+        p != climate::CLIMATE_PRESET_NONE;
+    const bool preset_blocked_by_dry_mode = (enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY) && 
+     p != climate::CLIMATE_PRESET_NONE && p != climate::CLIMATE_PRESET_SLEEP;
+    const bool preset_allowed_in_mode = !preset_blocked_by_auto_mode && !preset_blocked_by_dry_mode;
     const bool preset_supported =
         !(p == climate::CLIMATE_PRESET_ECO && capabilities_.valid && !capabilities_.power_save);
     if (!preset_allowed_in_mode) {
