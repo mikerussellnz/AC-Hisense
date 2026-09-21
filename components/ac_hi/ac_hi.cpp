@@ -898,7 +898,10 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
     }
   }
 
-  if (!changed) return;
+  if (!changed) {
+    ESP_LOGD(TAG, "Control returning due to !changed.");  
+    return;
+  }
 
   uint16_t changed_fields = CMD_FIELD_NONE;
   if (d_power_on_ != before_power_on || d_mode_ != before_mode)
