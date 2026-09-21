@@ -878,6 +878,9 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
   if (!custom_fan.empty()) {
     if (custom_fan == CUSTOM_FAN_TURBO && d_mode_ == climate::CLIMATE_MODE_AUTO) {
       ESP_LOGD(TAG, "Ignoring custom Turbo fan while SMART/AUTO is active");
+    } else if (custom_fan == CUSTOM_FAN_TURBO && enable_dry_offset_ &&
+       d_mode_ == climate::CLIMATE_MODE_DRY) {
+      ESP_LOGD(TAG, "Ignoring custom fan-mode command while DRY is active as fan is locked to AUTO in dry mode.");
     } else if (custom_fan == CUSTOM_FAN_TURBO) {
       sleep_fan_override_pending_ = (sleep_stage_ > 0 || d_sleep_stage_ > 0);
       sleep_restore_fan_valid_ = false;
