@@ -2049,6 +2049,15 @@ void ACHIClimate::parse_status_102_(const std::vector<uint8_t> &b) {
     ESP_LOGI(TAG, "AC temperature display unit changed to %s", temp_unit_f_ ? "Fahrenheit" : "Celsius");
   }
 
+  if (mode_ == climate::CLIMATE_MODE_DRY) {
+    const uint8_t dry_nibble = static_cast<uint8_t>(b[IDX_TEMP_UNIT] >> 4);
+    const int8_t dry_offset = dry_nibble <= 7
+                                  ? static_cast<int8_t>(dry_nibble)
+                                  : -static_cast<int8_t>(dry_nibble & 0x07);
+    ESP_LOGD(TAG, "DRY mode offset: %+d (byte26=0x%02X)", static_cast<int>(dry_offset),
+             b[IDX_TEMP_UNIT]);
+  }
+
   const uint8_t raw_target_wire = b[IDX_SET_TEMP];
   const uint8_t raw_current_wire = b[IDX_CURRENT_TEMP];
   const int16_t decoded_target_c = temp_unit_f_
