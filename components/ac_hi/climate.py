@@ -30,6 +30,7 @@ else:
 
 CONF_ENABLE_PRESETS = "enable_presets"
 CONF_ENABLE_HUMIDITY = "enable_humidity"
+CONF_ENABLE_DRY_OFFSET = "enable_dry_offset"
 CONF_PIPE_TEMPERATURE = "pipe_temperature"
 CONF_LED_SWITCH = "led_switch"
 CONF_SOUND_SWITCH = "sound_switch"
@@ -112,6 +113,7 @@ CONFIG_SCHEMA = cv.All(BASE_CLIMATE_SCHEMA.extend({
     **BASE_CLIMATE_EXTRA,
     cv.Optional(CONF_ENABLE_PRESETS, default=True): cv.boolean,
     cv.Optional(CONF_ENABLE_HUMIDITY, default=True): cv.boolean,
+    cv.Optional(CONF_ENABLE_DRY_OFFSET, default=False): cv.boolean,
     # RS-485 direction control for transceivers without auto-direction
     cv.Optional(CONF_FLOW_CONTROL_PIN): pins.gpio_output_pin_schema,
     cv.Optional(CONF_DE_PIN): pins.gpio_output_pin_schema,
@@ -315,6 +317,7 @@ async def to_code(config):
     cg.add(var.set_uart_parent(uart_comp))
 
     cg.add(var.set_enable_presets(config[CONF_ENABLE_PRESETS]))
+    cg.add(var.set_enable_dry_offset(config[CONF_ENABLE_DRY_OFFSET]))
 
     for key, setter in ((CONF_FLOW_CONTROL_PIN, "set_flow_control_pin"),
                         (CONF_DE_PIN, "set_de_pin"), (CONF_RE_PIN, "set_re_pin")):

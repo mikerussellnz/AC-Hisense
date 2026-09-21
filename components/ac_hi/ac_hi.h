@@ -260,6 +260,7 @@ class ACHIClimate : public climate::Climate, public PollingComponent, public uar
 
   // Configuration
   void set_enable_presets(bool v) { enable_presets_ = v; }
+  void set_enable_dry_offset(bool v) { enable_dry_offset_ = v; }
   // Optional RS-485 half-duplex direction control for transceivers without
   // automatic direction switching (e.g. bare MAX485): either a single
   // flow_control_pin wired to DE+RE, or separate de_pin / re_pin.
@@ -690,6 +691,7 @@ class ACHIClimate : public climate::Climate, public PollingComponent, public uar
   ACHISleepProgramSelect *sleep_program_select_{nullptr};
 
   bool enable_presets_{true};
+  bool enable_dry_offset_{false};
 
   // For debugging (optional)
   std::vector<uint8_t> last_status_frame_;

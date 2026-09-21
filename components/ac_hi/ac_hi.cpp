@@ -2049,7 +2049,10 @@ void ACHIClimate::parse_status_102_(const std::vector<uint8_t> &b) {
     ESP_LOGI(TAG, "AC temperature display unit changed to %s", temp_unit_f_ ? "Fahrenheit" : "Celsius");
   }
 
-  if (mode_ == climate::CLIMATE_MODE_DRY) {
+  // In DRY mode byte 26 stores the remote's -7..+7 adjustment in its upper
+  // nibble: 0..7 means +0..+7, while 9..F means -1..-7. The low bits retain
+  // independent status flags, including the Fahrenheit flag in bit 1.
+  if (enable_dry_offset_ && mode_ == climate::CLIMATE_MODE_DRY) {
     const uint8_t dry_nibble = static_cast<uint8_t>(b[IDX_TEMP_UNIT] >> 4);
     const int8_t dry_offset = dry_nibble <= 7
                                   ? static_cast<int8_t>(dry_nibble)
