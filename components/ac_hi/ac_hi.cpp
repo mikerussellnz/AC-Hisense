@@ -1017,7 +1017,6 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
     ESP_LOGD(TAG, "DRY offset TX encoding: offset=%+d byte26=0x%02X temp_unit=%s",
          static_cast<int>(offset), tx_bytes_[IDX_TEMP_UNIT],
          temp_unit_f_ ? "F" : "C");
-    ESP_LOGD(TAG, "TX frame with DRY offset: %s", format_hex_pretty(tx_bytes_).c_str());
   }
 
   // Display is also action-style. Send it when explicitly changed, or append
@@ -1035,6 +1034,8 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
       user_command_next_write_ && !d_led_ && !sleep_temporarily_owns_led;
   if ((fields & CMD_FIELD_LED) || append_led_off)
     tx_bytes_[IDX_TX_LED] = d_led_ ? TxValues::LED_ON : TxValues::LED_OFF;
+
+  ESP_LOGD(TAG, "TX frame: %s", format_hex_pretty(tx_bytes_).c_str());
 }
 
 // Queue only the fields that still differ after a status response. Sleep is
