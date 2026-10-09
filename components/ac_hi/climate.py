@@ -300,7 +300,6 @@ CONFIG_SCHEMA = cv.All(BASE_CLIMATE_SCHEMA.extend({
     cv.Optional(CONF_DRY_OFFSET, default={CONF_NAME: "Dry Offset"}): number.number_schema(
         ACHIDryOffsetNumber,
         icon="mdi:thermometer-minus",
-        entity_category=ENTITY_CATEGORY_CONFIG,
     ),
 
     # New memory diagnostics sensors (all optional)
