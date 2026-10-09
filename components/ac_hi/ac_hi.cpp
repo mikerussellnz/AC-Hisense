@@ -942,7 +942,9 @@ void ACHIClimate::control(const climate::ClimateCall &call) {
 
   // Publish optimistically
   this->mode = d_power_on_ ? d_mode_ : climate::CLIMATE_MODE_OFF;
-  this->target_temperature = d_heat_8c_ ? 8 : d_target_c_;
+  this->target_temperature = enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY
+                                ? NAN
+                                : (d_heat_8c_ ? 8 : d_target_c_);
   publish_fan_state_(d_fan_turbo_, d_fan_);
   this->swing_mode = d_swing_;
   if (enable_presets_) {
@@ -2654,7 +2656,9 @@ void ACHIClimate::publish_gated_state_() {
         : (power_on_ ? target_c_ : target_for_mode_(mode_, d_target_c_));
 
     this->mode = power_on_ ? mode_ : climate::CLIMATE_MODE_OFF;
-    this->target_temperature = published_target;
+    this->target_temperature = enable_dry_offset_ && mode_ == climate::CLIMATE_MODE_DRY
+                                  ? NAN
+                                  : published_target;
     // In COOL the BOOST preset uses the physical Turbo airflow and should be
     // exposed as the custom Turbo fan mode. In HEAT this model keeps the fan
     // under automatic control even though the BOOST flag is active, so do not
@@ -2694,7 +2698,9 @@ void ACHIClimate::publish_gated_state_() {
     // authoritative for the fan unless the user explicitly requested another
     // fan mode; therefore show the real QUIET fan instead of stale desired AUTO.
     this->mode = d_power_on_ ? d_mode_ : climate::CLIMATE_MODE_OFF;
-    this->target_temperature = d_heat_8c_ ? 8 : d_target_c_;
+    this->target_temperature = enable_dry_offset_ && d_mode_ == climate::CLIMATE_MODE_DRY
+                                   ? NAN
+                                   : (d_heat_8c_ ? 8 : d_target_c_);
     if (d_turbo_) {
       // Show the expected fan state immediately while BOOST is being confirmed:
       // Turbo airflow in COOL, but AUTO airflow in HEAT.
