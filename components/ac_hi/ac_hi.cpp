@@ -3042,7 +3042,7 @@ void ACHIClimate::log_frame_(const char *prefix, const std::vector<uint8_t> &b) 
   const size_t n = b.size();
   char header[64];
   snprintf(header, sizeof(header), "%s (%u bytes)", prefix, (unsigned) n);
-  ESP_LOGV(TAG, "%s", header);
+  ESP_LOGD(TAG, "%s", header);
   for (size_t i = 0; i < n; i += 16) {
     char line[64];
     char *p = line;
@@ -3051,7 +3051,7 @@ void ACHIClimate::log_frame_(const char *prefix, const std::vector<uint8_t> &b) 
     for (size_t j = 0; j < chunk; j++) {
       p += snprintf(p, sizeof(line) - (p - line), "%02X ", b[i + j]);
     }
-    ESP_LOGV(TAG, "  %s", line);
+    ESP_LOGD(TAG, "  %s", line);
   }
 }
 
