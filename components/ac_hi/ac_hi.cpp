@@ -1028,9 +1028,9 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
     const uint8_t magnitude = offset < 0
         ? static_cast<uint8_t>(8 + -offset)
         : static_cast<uint8_t>(offset);
-    tx_bytes_[IDX_TEMP_UNIT] = static_cast<uint8_t>((magnitude << 4) | 0x0C);
-    ESP_LOGD(TAG, "DRY offset TX encoding: offset=%+d byte26=0x%02X",
-       static_cast<int>(offset), tx_bytes_[IDX_TEMP_UNIT]);
+        tx_bytes_[IDX_TX_DRY_OFFSET] = static_cast<uint8_t>((magnitude << 4) | 0x0C);
+        ESP_LOGD(TAG, "DRY offset TX encoding: offset=%+d byte23=0x%02X",
+          static_cast<int>(offset), tx_bytes_[IDX_TX_DRY_OFFSET]);
   }
 
   // Display is also action-style. Send it when explicitly changed, or append
@@ -1044,8 +1044,9 @@ void ACHIClimate::build_tx_from_pending_fields_(uint16_t fields) {
       (fields & CMD_FIELD_SLEEP);
   const bool sleep_temporarily_owns_led =
       sleep_session && (!sleep_restore_led_valid_ || sleep_restore_led_);
-  const bool append_led_off =
-      user_command_next_write_ && !d_led_ && !sleep_temporarily_owns_led;
+    const bool append_led_off =
+      !(fields & CMD_FIELD_DRY_OFFSET) && user_command_next_write_ && !d_led_ &&
+      !sleep_temporarily_owns_led;
   if ((fields & CMD_FIELD_LED) || append_led_off)
     tx_bytes_[IDX_TX_LED] = d_led_ ? TxValues::LED_ON : TxValues::LED_OFF;
 
@@ -1139,10 +1140,11 @@ void ACHIClimate::send_write_changes_() {
   sleep_confirmation_pending_ = (fields & CMD_FIELD_SLEEP) != 0;
   if (sleep_confirmation_pending_)
     sleep_confirmation_target_stage_ = d_sleep_stage_;
-  tx_bytes_[IDX_TX_BEEP] = beep_on_next_write_ ? TxValues::BEEP_ON : TxValues::BEEP_OFF;
+  if (!(fields & CMD_FIELD_DRY_OFFSET))
+    tx_bytes_[IDX_TX_BEEP] = beep_on_next_write_ ? TxValues::BEEP_ON : TxValues::BEEP_OFF;
   calc_and_patch_crc_(tx_bytes_);
   ESP_LOGD(TAG,
-           "Sending neutral one-shot write (0x65): fields=0x%03X wind[16]=0x%02X sleep[17]=0x%02X power_mode[18]=0x%02X temp[19]=0x%02X swing[32]=0x%02X features[33]=0x%02X quiet[35]=0x%02X led[36]=0x%02X heat8[37]=0x%02X beep[23]=0x%02X",
+           "Sending neutral one-shot write (0x65): fields=0x%03X wind[16]=0x%02X sleep[17]=0x%02X power_mode[18]=0x%02X temp[19]=0x%02X swing[32]=0x%02X features[33]=0x%02X quiet[35]=0x%02X led[36]=0x%02X heat8[37]=0x%02X beep/dry[23]=0x%02X",
            (unsigned) fields, tx_bytes_[IDX_WIND], tx_bytes_[IDX_SLEEP],
            tx_bytes_[IDX_POWER_MODE], tx_bytes_[IDX_SET_TEMP],
            tx_bytes_[IDX_TX_SWING], tx_bytes_[IDX_TX_TURBO_ECO],

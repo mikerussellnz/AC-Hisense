@@ -165,6 +165,8 @@ enum FrameIndex : uint8_t {
 
   // Write-frame indexes.
   IDX_TX_BEEP = 23,
+  // DRY-offset commands reuse byte 23 for the offset/update/manual flags.
+  IDX_TX_DRY_OFFSET = 23,
   IDX_TX_SWING = 32,
   IDX_TX_TURBO_ECO = 33,
   IDX_TX_QUIET = 35,
